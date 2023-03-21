@@ -4,8 +4,8 @@ import gym
 import cliff_walking_env
 from tqdm import tqdm
 
-class Sarsa:
-    """SARSA算法"""
+class Q_learning:
+    """Q-learning算法"""
     def __init__(self,ncol,nrow,epsilon,alpha,gamma,n_action=4):
         self.Q_table=np.zeros([ncol*nrow,n_action])#初始化Q表
         self.n_action=n_action
@@ -22,9 +22,9 @@ class Sarsa:
             action=np.argmax(self.Q_table[state])
         return action
 
-    def update(self,s0,a0,r,s1,a1):
+    def update(self,s0,a0,r,s1):
         """更新Q表"""
-        td_error=r+self.gamma*self.Q_table[s1][a1]-self.Q_table[s0][a0]
+        td_error=r+self.gamma*max(self.Q_table[s1])-self.Q_table[s0][a0]
         self.Q_table[s0][a0]+=self.alpha*td_error
     def best_action(self,state):
         """用于最终打印策略"""
@@ -42,7 +42,7 @@ epsilon=0.1
 alpha=0.1
 np.random.seed(0)
 env=cliff_walking_env.CliffWalkingEnv(ncol,nrow)
-agent=Sarsa(ncol,nrow,epsilon,alpha,gamma)
+agent=Q_learning(ncol,nrow,epsilon,alpha,gamma)
 num_episodes=500
 
 return_list=[]#用于记录每个episode的回报
@@ -51,14 +51,12 @@ for i in range(10):#共显示10个进度条
         for i_episode in range(num_episodes//10):
             episode_return=0
             state=env.reset()
-            action=agent.take_action(state)
             done=False
             while not done:
+                action = agent.take_action(state)
                 next_state,reward,done=env.step(action)
-                next_action=agent.take_action(next_state)
                 episode_return+=reward
-                agent.update(state,action,reward,next_state,next_action)
-                action=next_action
+                agent.update(state,action,reward,next_state)
                 state=next_state
             return_list.append(episode_return)
             if (i_episode+1)%10==0:
