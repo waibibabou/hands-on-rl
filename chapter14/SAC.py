@@ -22,11 +22,10 @@ class PolicyNetContinuous(torch.nn.Module):
         x = F.relu(self.fc1(x))
         mu = self.fc_mu(x)
         std = F.softplus(self.fc_std(x))
-        dist = Normal(mu, std)
+        dist = Normal(mu, std)#这里也像DDPG一样直接输出一个动作可以吗 想了一下发现不行，因为后面需要用到pai(a|s)数值，直接输出一个动作没法得到该值了
         normal_sample = dist.rsample()
         log_prob = dist.log_prob(normal_sample)
         action = torch.tanh(normal_sample)
-        log_prob = log_prob - torch.log(1 - torch.tanh(action).pow(2) + 1e-7)
         # action *= self.action_bound #这样写会影响梯度的回传
         action=action*self.action_bound
         return action, log_prob
@@ -72,6 +71,7 @@ class SACContinous:
 
     def take_action(self, state):
         state = torch.tensor([state], dtype=torch.float).to(self.device)
+        # temp=self.actor(state)
         action = self.actor(state)[0]  #actor返回的是tuple,其中每个的shape为(1,1)
 
         return [action.item()]

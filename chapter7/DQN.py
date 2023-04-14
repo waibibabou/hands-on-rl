@@ -8,6 +8,8 @@ import gym
 import collections
 import torch.nn.functional as F
 import rl_utils
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
 class ReplayBuffer:
